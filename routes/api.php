@@ -1,19 +1,26 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\v1\AuthController;
+use App\Http\Controllers\Api\v1\TaskController;
+use App\Http\Controllers\Api\v1\UserController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
+Route::controller(AuthController::class)->prefix('v1')->middleware('throttle:400,60')->group(function () {
+    Route::post('/auth/login', 'login');
+    Route::post('/auth/logout', 'logout')->middleware('auth:sanctum');
+    Route::get('/profile', 'profile')->middleware('auth:sanctum');
+});
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::controller(UserController::class)->prefix('v1')->middleware('throttle:400,60')->group(function () {
+    Route::post('/users', 'store');
+    Route::get('/users/{id}', 'show')->middleware('auth:sanctum');
+    Route::patch('/users/{id}', 'update')->middleware('auth:sanctum');
+    Route::delete('/users/{id}', 'destroy')->middleware('auth:sanctum');
+});
+
+Route::controller(TaskController::class)->prefix('v1')->middleware(['auth:sanctum', 'throttle:400,60'])->group(function () {
+    Route::post('/tasks', 'store');
+    Route::get('/tasks/{id}', 'show');
+    Route::patch('/tasks/{id}', 'update');
+    Route::delete('/tasks/{id}', 'destroy');
 });
